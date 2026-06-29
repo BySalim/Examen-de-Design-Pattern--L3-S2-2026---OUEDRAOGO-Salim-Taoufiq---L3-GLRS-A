@@ -5,7 +5,10 @@ import com.badwallet.service.WalletService;
 import com.badwallet.web.dto.CreateWalletRequest;
 import com.badwallet.web.dto.WalletResponse;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,5 +32,10 @@ public class WalletController {
         return ResponseEntity
                 .created(URI.create("/api/wallets/" + wallet.getId()))
                 .body(WalletResponse.from(wallet));
+    }
+
+    @GetMapping
+    public Page<WalletResponse> lister(Pageable pageable) {
+        return walletService.lister(pageable).map(WalletResponse::from);
     }
 }

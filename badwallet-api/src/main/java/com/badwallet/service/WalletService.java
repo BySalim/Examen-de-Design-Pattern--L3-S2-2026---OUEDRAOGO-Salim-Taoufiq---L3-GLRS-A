@@ -4,6 +4,8 @@ import com.badwallet.domain.Wallet;
 import com.badwallet.error.DuplicateResourceException;
 import com.badwallet.repository.WalletRepository;
 import com.badwallet.web.dto.CreateWalletRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +16,11 @@ public class WalletService {
 
     public WalletService(WalletRepository walletRepository) {
         this.walletRepository = walletRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Wallet> lister(Pageable pageable) {
+        return walletRepository.findAll(pageable);
     }
 
     @Transactional
