@@ -5,17 +5,22 @@ import com.badwallet.domain.Transaction;
 import com.badwallet.domain.TransactionDirection;
 import com.badwallet.domain.TransactionType;
 import com.badwallet.domain.Wallet;
+import com.badwallet.error.InsufficientBalanceException;
 import com.badwallet.error.WalletNotFoundException;
 import com.badwallet.repository.WalletRepository;
+import com.badwallet.transaction.FeePolicy;
 import com.badwallet.transaction.deposit.DepositStrategy;
 import com.badwallet.transaction.deposit.DepositStrategyFactory;
 import com.badwallet.transaction.event.TransactionEvent;
 import com.badwallet.web.dto.DepositRequest;
 import com.badwallet.web.dto.TransactionResponse;
+import com.badwallet.web.dto.WithdrawRequest;
+import com.badwallet.web.dto.WithdrawResponse;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 
@@ -24,15 +29,18 @@ public class TransactionService {
 
     private final WalletRepository walletRepository;
     private final DepositStrategyFactory depositStrategyFactory;
+    private final FeePolicy feePolicy;
     private final ApplicationEventPublisher publisher;
     private final Clock clock;
 
     public TransactionService(WalletRepository walletRepository,
                               DepositStrategyFactory depositStrategyFactory,
+                              FeePolicy feePolicy,
                               ApplicationEventPublisher publisher,
                               Clock clock) {
         this.walletRepository = walletRepository;
         this.depositStrategyFactory = depositStrategyFactory;
+        this.feePolicy = feePolicy;
         this.publisher = publisher;
         this.clock = clock;
     }
@@ -59,6 +67,43 @@ public class TransactionService {
         publisher.publishEvent(new TransactionEvent(transaction));
 
         return TransactionResponse.from(transaction);
+    }
+
+    @Transactional
+    public WithdrawResponse retirer(WithdrawRequest request) {
+        Wallet wallet = walletRepository.findByPhoneNumber(request.phoneNumber())
+                .orElseThrow(() -> new WalletNotFoundException(
+                        "Portefeuille introuvable pour le telephone : " + request.phoneNumber()));
+
+        BigDecimal fee = feePolicy.fraisRetrait(request.amount());
+        BigDecimal totalDebited = request.amount().add(fee);
+        if (wallet.getBalance().compareTo(totalDebited) < 0) {
+            throw new InsufficientBalanceException(
+                    "Solde insuffisant pour retirer " + totalDebited + " " + wallet.getCurrency());
+        }
+
+        wallet.debiter(totalDebited);
+
+        Transaction transaction = Transaction.builder()
+                .wallet(wallet)
+                .type(TransactionType.WITHDRAW)
+                .direction(TransactionDirection.DEBIT)
+                .amount(request.amount())
+                .fee(fee)
+                .balanceAfter(wallet.getBalance())
+                .currency(wallet.getCurrency())
+                .description("Retrait")
+                .createdAt(Instant.now(clock))
+                .build();
+        publisher.publishEvent(new TransactionEvent(transaction));
+
+        return new WithdrawResponse(
+                wallet.getPhoneNumber(),
+                request.amount(),
+                fee,
+                totalDebited,
+                wallet.getBalance(),
+                wallet.getCurrency());
     }
 
     private PaymentMethod parseMethod(String value) {
