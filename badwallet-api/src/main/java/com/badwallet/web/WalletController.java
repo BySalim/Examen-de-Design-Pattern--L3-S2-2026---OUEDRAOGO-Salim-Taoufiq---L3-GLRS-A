@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/wallets")
@@ -66,6 +67,11 @@ public class WalletController {
     @GetMapping("/{phone}/balance")
     public BalanceResponse solde(@PathVariable String phone) {
         return BalanceResponse.from(walletService.consulterParTelephone(phone));
+    }
+
+    @GetMapping("/{phone}/transactions")
+    public List<TransactionResponse> historique(@PathVariable String phone) {
+        return transactionService.historique(phone);
     }
 
     @PostMapping("/{id}/deposit")
