@@ -14,6 +14,8 @@ import com.badwallet.transaction.deposit.DepositStrategyFactory;
 import com.badwallet.transaction.event.TransactionEvent;
 import com.badwallet.web.dto.DepositRequest;
 import com.badwallet.web.dto.TransactionResponse;
+import com.badwallet.web.dto.TransferRequest;
+import com.badwallet.web.dto.TransferResponse;
 import com.badwallet.web.dto.WithdrawRequest;
 import com.badwallet.web.dto.WithdrawResponse;
 import org.springframework.context.ApplicationEventPublisher;
@@ -104,6 +106,63 @@ public class TransactionService {
                 totalDebited,
                 wallet.getBalance(),
                 wallet.getCurrency());
+    }
+
+    @Transactional
+    public TransferResponse transferer(TransferRequest request) {
+        if (request.senderPhone().equals(request.receiverPhone())) {
+            throw new IllegalArgumentException("L'emetteur et le destinataire doivent etre differents");
+        }
+
+        Wallet sender = walletRepository.findByPhoneNumber(request.senderPhone())
+                .orElseThrow(() -> new WalletNotFoundException(
+                        "Portefeuille emetteur introuvable : " + request.senderPhone()));
+        Wallet receiver = walletRepository.findByPhoneNumber(request.receiverPhone())
+                .orElseThrow(() -> new WalletNotFoundException(
+                        "Portefeuille destinataire introuvable : " + request.receiverPhone()));
+
+        if (sender.getBalance().compareTo(request.amount()) < 0) {
+            throw new InsufficientBalanceException(
+                    "Solde insuffisant pour transferer " + request.amount() + " " + sender.getCurrency());
+        }
+
+        sender.debiter(request.amount());
+        receiver.crediter(request.amount());
+        Instant maintenant = Instant.now(clock);
+
+        Transaction debit = Transaction.builder()
+                .wallet(sender)
+                .type(TransactionType.TRANSFER)
+                .direction(TransactionDirection.DEBIT)
+                .amount(request.amount())
+                .balanceAfter(sender.getBalance())
+                .currency(sender.getCurrency())
+                .counterpartyPhone(receiver.getPhoneNumber())
+                .description("Transfert emis")
+                .createdAt(maintenant)
+                .build();
+        publisher.publishEvent(new TransactionEvent(debit));
+
+        Transaction credit = Transaction.builder()
+                .wallet(receiver)
+                .type(TransactionType.TRANSFER)
+                .direction(TransactionDirection.CREDIT)
+                .amount(request.amount())
+                .balanceAfter(receiver.getBalance())
+                .currency(receiver.getCurrency())
+                .counterpartyPhone(sender.getPhoneNumber())
+                .description("Transfert recu")
+                .createdAt(maintenant)
+                .build();
+        publisher.publishEvent(new TransactionEvent(credit));
+
+        return new TransferResponse(
+                sender.getPhoneNumber(),
+                receiver.getPhoneNumber(),
+                request.amount(),
+                sender.getBalance(),
+                receiver.getBalance(),
+                sender.getCurrency());
     }
 
     private PaymentMethod parseMethod(String value) {

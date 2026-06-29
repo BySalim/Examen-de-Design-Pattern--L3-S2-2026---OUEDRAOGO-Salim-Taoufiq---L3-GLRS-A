@@ -7,6 +7,8 @@ import com.badwallet.web.dto.BalanceResponse;
 import com.badwallet.web.dto.CreateWalletRequest;
 import com.badwallet.web.dto.DepositRequest;
 import com.badwallet.web.dto.TransactionResponse;
+import com.badwallet.web.dto.TransferRequest;
+import com.badwallet.web.dto.TransferResponse;
 import com.badwallet.web.dto.WalletResponse;
 import com.badwallet.web.dto.WithdrawRequest;
 import com.badwallet.web.dto.WithdrawResponse;
@@ -66,5 +68,10 @@ public class WalletController {
     @PostMapping("/withdraw")
     public WithdrawResponse retirer(@Valid @RequestBody WithdrawRequest request) {
         return transactionService.retirer(request);
+    }
+
+    @PostMapping("/transfer")
+    public TransferResponse transferer(@Valid @RequestBody TransferRequest request) {
+        return transactionService.transferer(request);
     }
 }
