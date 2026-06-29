@@ -12,8 +12,8 @@ import java.time.Instant;
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
-    @ExceptionHandler(WalletNotFoundException.class)
-    public ResponseEntity<ApiError> handleNotFound(WalletNotFoundException exception, HttpServletRequest request) {
+    @ExceptionHandler({WalletNotFoundException.class, FactureNotFoundException.class})
+    public ResponseEntity<ApiError> handleNotFound(RuntimeException exception, HttpServletRequest request) {
         return build(HttpStatus.NOT_FOUND, exception.getMessage(), request);
     }
 
