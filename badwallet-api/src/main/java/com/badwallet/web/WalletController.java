@@ -1,0 +1,33 @@
+package com.badwallet.web;
+
+import com.badwallet.domain.Wallet;
+import com.badwallet.service.WalletService;
+import com.badwallet.web.dto.CreateWalletRequest;
+import com.badwallet.web.dto.WalletResponse;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.net.URI;
+
+@RestController
+@RequestMapping("/api/wallets")
+public class WalletController {
+
+    private final WalletService walletService;
+
+    public WalletController(WalletService walletService) {
+        this.walletService = walletService;
+    }
+
+    @PostMapping
+    public ResponseEntity<WalletResponse> creer(@Valid @RequestBody CreateWalletRequest request) {
+        Wallet wallet = walletService.creer(request);
+        return ResponseEntity
+                .created(URI.create("/api/wallets/" + wallet.getId()))
+                .body(WalletResponse.from(wallet));
+    }
+}
