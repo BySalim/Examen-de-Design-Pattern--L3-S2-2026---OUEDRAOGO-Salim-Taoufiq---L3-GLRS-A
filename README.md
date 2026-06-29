@@ -1,22 +1,22 @@
-# Examen Design Pattern — L3 S2 2026
+# BadWallet API & Payment Service
 
-Deux services REST Spring Boot.
+Deux services REST développés avec Spring Boot.
 
 | Service | Port | Rôle |
 |---------|------|------|
 | `badwallet-api` | 8080 | Portefeuilles : création, dépôt, retrait, transfert, paiement de factures, historique |
 | `payment-service` | 8081 | Factures ISM et WOYAFAL par portefeuille (service interne) |
 
-Le `badwallet-api` appelle le `payment-service` pour payer et consulter les factures. Le professeur ne teste que le port 8080.
+Le `badwallet-api` s'appuie sur le `payment-service` pour le paiement et la consultation des factures.
 
 ## Pré-requis
 
 - Java 21
-- Aucune installation de base de données : H2 en mémoire, les données sont générées au démarrage.
+- Base H2 en mémoire : aucune installation de base de données n'est requise.
 
 ## Lancer
 
-Deux projets Maven indépendants, à lancer dans deux terminaux.
+Les deux modules sont des projets Maven indépendants.
 
 ```bash
 # Terminal 1
@@ -30,10 +30,13 @@ cd badwallet-api
 
 ## Tester
 
-Les deux services s'amorcent automatiquement au démarrage (10 portefeuilles et leurs factures).
-Ouvrir `test.http` avec l'extension REST Client (VS Code) et lancer les requêtes une à une.
+Les données (portefeuilles et factures) sont générées automatiquement au démarrage.
+Le fichier `test.http` regroupe l'ensemble des requêtes et s'utilise avec l'extension REST Client de VS Code.
+Un redémarrage des services repart d'un état neuf, la base étant recréée à chaque lancement.
 
-Pour repartir d'un état neuf, redémarrer les services (base recréée à chaque démarrage).
+## Patterns mis en œuvre
+
+Strategy, Factory, Proxy, Adapter, Repository, Observer, Template Method, Builder, Singleton.
 
 ## Organisation Git
 
