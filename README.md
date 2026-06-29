@@ -1,46 +1,42 @@
 # Examen Design Pattern — L3 S2 2026
 
-Deux services REST construits avec Spring Boot.
+Deux services REST Spring Boot.
 
 | Service | Port | Rôle |
 |---------|------|------|
-| `badwallet-api` | 8080 | Portefeuilles, dépôts, retraits, transferts, paiement de factures |
-| `payment-service` | 8081 | Factures ISM et WOYAFAL par portefeuille |
+| `badwallet-api` | 8080 | Portefeuilles : création, dépôt, retrait, transfert, paiement de factures, historique |
+| `payment-service` | 8081 | Factures ISM et WOYAFAL par portefeuille (service interne) |
 
-Le `badwallet-api` consomme le `payment-service` (paiement de factures et proxy de consultation).
+Le `badwallet-api` appelle le `payment-service` pour payer et consulter les factures. Le professeur ne teste que le port 8080.
 
-## Stack
+## Pré-requis
 
 - Java 21
-- Spring Boot 3
-- Maven
-- H2 (base en mémoire, données générées par le seeder au besoin)
+- Aucune installation de base de données : H2 en mémoire, les données sont générées au démarrage.
 
-## Lancer les services
+## Lancer
 
-Chaque service est un projet Maven indépendant.
+Deux projets Maven indépendants, à lancer dans deux terminaux.
 
 ```bash
 # Terminal 1
-cd badwallet-api
+cd payment-service
 ./mvnw spring-boot:run
 
 # Terminal 2
-cd payment-service
+cd badwallet-api
 ./mvnw spring-boot:run
 ```
 
 ## Tester
 
-1. Démarrer les deux services.
-2. Générer les données :
-   ```
-   POST http://localhost:8080/api/wallets/seed?numWallets=10&eventsPerWallet=100
-   ```
-3. Lancer les requêtes de `test.http` (extension REST Client de VS Code).
+Les deux services s'amorcent automatiquement au démarrage (10 portefeuilles et leurs factures).
+Ouvrir `test.http` avec l'extension REST Client (VS Code) et lancer les requêtes une à une.
+
+Pour repartir d'un état neuf, redémarrer les services (base recréée à chaque démarrage).
 
 ## Organisation Git
 
 - `main` : code stable et livrable.
 - `develop` : intégration des fonctionnalités terminées et testées.
-- `feature/*` : une branche par endpoint, créée depuis `develop` et fusionnée dans `develop`.
+- `feature/*` : une branche par endpoint, créée depuis `develop` puis fusionnée dans `develop`.
