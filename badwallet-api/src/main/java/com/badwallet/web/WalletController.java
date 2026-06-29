@@ -1,11 +1,15 @@
 package com.badwallet.web;
 
 import com.badwallet.domain.Wallet;
+import com.badwallet.service.PaymentService;
 import com.badwallet.service.TransactionService;
 import com.badwallet.service.WalletService;
 import com.badwallet.web.dto.BalanceResponse;
 import com.badwallet.web.dto.CreateWalletRequest;
 import com.badwallet.web.dto.DepositRequest;
+import com.badwallet.web.dto.PayFacturesRequest;
+import com.badwallet.web.dto.PayRequest;
+import com.badwallet.web.dto.PaymentResponse;
 import com.badwallet.web.dto.TransactionResponse;
 import com.badwallet.web.dto.TransferRequest;
 import com.badwallet.web.dto.TransferResponse;
@@ -31,10 +35,14 @@ public class WalletController {
 
     private final WalletService walletService;
     private final TransactionService transactionService;
+    private final PaymentService paymentService;
 
-    public WalletController(WalletService walletService, TransactionService transactionService) {
+    public WalletController(WalletService walletService,
+                           TransactionService transactionService,
+                           PaymentService paymentService) {
         this.walletService = walletService;
         this.transactionService = transactionService;
+        this.paymentService = paymentService;
     }
 
     @PostMapping
@@ -73,5 +81,15 @@ public class WalletController {
     @PostMapping("/transfer")
     public TransferResponse transferer(@Valid @RequestBody TransferRequest request) {
         return transactionService.transferer(request);
+    }
+
+    @PostMapping("/pay")
+    public PaymentResponse payer(@Valid @RequestBody PayRequest request) {
+        return paymentService.payerMoisCourant(request);
+    }
+
+    @PostMapping("/pay-factures")
+    public PaymentResponse payerFactures(@Valid @RequestBody PayFacturesRequest request) {
+        return paymentService.payerFactures(request);
     }
 }
