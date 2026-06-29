@@ -7,6 +7,7 @@ import com.badwallet.domain.TransactionType;
 import com.badwallet.domain.Wallet;
 import com.badwallet.error.InsufficientBalanceException;
 import com.badwallet.error.WalletNotFoundException;
+import com.badwallet.repository.TransactionRepository;
 import com.badwallet.repository.WalletRepository;
 import com.badwallet.transaction.FeePolicy;
 import com.badwallet.transaction.deposit.DepositStrategy;
@@ -25,26 +26,40 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.List;
 
 @Service
 public class TransactionService {
 
     private final WalletRepository walletRepository;
+    private final TransactionRepository transactionRepository;
     private final DepositStrategyFactory depositStrategyFactory;
     private final FeePolicy feePolicy;
     private final ApplicationEventPublisher publisher;
     private final Clock clock;
 
     public TransactionService(WalletRepository walletRepository,
+                              TransactionRepository transactionRepository,
                               DepositStrategyFactory depositStrategyFactory,
                               FeePolicy feePolicy,
                               ApplicationEventPublisher publisher,
                               Clock clock) {
         this.walletRepository = walletRepository;
+        this.transactionRepository = transactionRepository;
         this.depositStrategyFactory = depositStrategyFactory;
         this.feePolicy = feePolicy;
         this.publisher = publisher;
         this.clock = clock;
+    }
+
+    @Transactional(readOnly = true)
+    public List<TransactionResponse> historique(String phoneNumber) {
+        if (!walletRepository.existsByPhoneNumber(phoneNumber)) {
+            throw new WalletNotFoundException("Portefeuille introuvable pour le telephone : " + phoneNumber);
+        }
+        return transactionRepository.findByWalletPhoneNumberOrderByCreatedAtDesc(phoneNumber).stream()
+                .map(TransactionResponse::from)
+                .toList();
     }
 
     @Transactional
