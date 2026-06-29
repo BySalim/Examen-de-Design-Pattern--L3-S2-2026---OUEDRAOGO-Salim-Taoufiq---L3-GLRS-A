@@ -2,6 +2,7 @@ package com.badwallet.service;
 
 import com.badwallet.domain.Wallet;
 import com.badwallet.error.DuplicateResourceException;
+import com.badwallet.error.WalletNotFoundException;
 import com.badwallet.repository.WalletRepository;
 import com.badwallet.web.dto.CreateWalletRequest;
 import org.springframework.data.domain.Page;
@@ -21,6 +22,13 @@ public class WalletService {
     @Transactional(readOnly = true)
     public Page<Wallet> lister(Pageable pageable) {
         return walletRepository.findAll(pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Wallet consulterParTelephone(String phoneNumber) {
+        return walletRepository.findByPhoneNumber(phoneNumber)
+                .orElseThrow(() -> new WalletNotFoundException(
+                        "Portefeuille introuvable pour le telephone : " + phoneNumber));
     }
 
     @Transactional
