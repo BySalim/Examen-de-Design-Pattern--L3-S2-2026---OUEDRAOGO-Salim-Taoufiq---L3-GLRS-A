@@ -1,9 +1,12 @@
 package com.badwallet.web;
 
 import com.badwallet.domain.Wallet;
+import com.badwallet.service.TransactionService;
 import com.badwallet.service.WalletService;
 import com.badwallet.web.dto.BalanceResponse;
 import com.badwallet.web.dto.CreateWalletRequest;
+import com.badwallet.web.dto.DepositRequest;
+import com.badwallet.web.dto.TransactionResponse;
 import com.badwallet.web.dto.WalletResponse;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -23,9 +26,11 @@ import java.net.URI;
 public class WalletController {
 
     private final WalletService walletService;
+    private final TransactionService transactionService;
 
-    public WalletController(WalletService walletService) {
+    public WalletController(WalletService walletService, TransactionService transactionService) {
         this.walletService = walletService;
+        this.transactionService = transactionService;
     }
 
     @PostMapping
@@ -49,5 +54,10 @@ public class WalletController {
     @GetMapping("/{phone}/balance")
     public BalanceResponse solde(@PathVariable String phone) {
         return BalanceResponse.from(walletService.consulterParTelephone(phone));
+    }
+
+    @PostMapping("/{id}/deposit")
+    public TransactionResponse deposer(@PathVariable Long id, @Valid @RequestBody DepositRequest request) {
+        return transactionService.deposer(id, request);
     }
 }
