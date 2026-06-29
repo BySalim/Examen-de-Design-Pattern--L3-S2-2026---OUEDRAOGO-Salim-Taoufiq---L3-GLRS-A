@@ -8,6 +8,8 @@ import com.badwallet.web.dto.CreateWalletRequest;
 import com.badwallet.web.dto.DepositRequest;
 import com.badwallet.web.dto.TransactionResponse;
 import com.badwallet.web.dto.WalletResponse;
+import com.badwallet.web.dto.WithdrawRequest;
+import com.badwallet.web.dto.WithdrawResponse;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -59,5 +61,10 @@ public class WalletController {
     @PostMapping("/{id}/deposit")
     public TransactionResponse deposer(@PathVariable Long id, @Valid @RequestBody DepositRequest request) {
         return transactionService.deposer(id, request);
+    }
+
+    @PostMapping("/withdraw")
+    public WithdrawResponse retirer(@Valid @RequestBody WithdrawRequest request) {
+        return transactionService.retirer(request);
     }
 }
