@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 
@@ -38,6 +39,18 @@ public class FactureQueryService {
         return factureRepository.findByWalletCodeAndReferenceIn(walletCode, references).stream()
                 .map(FactureDto::from)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<FactureDto> impayeesSurPeriode(String walletCode, LocalDate debut, LocalDate fin, String unite) {
+        List<Facture> factures = (unite == null || unite.isBlank())
+                ? factureRepository
+                        .findByWalletCodeAndStatutAndDateEmissionGreaterThanEqualAndDateEmissionLessThanOrderByDateEmissionAsc(
+                                walletCode, StatutFacture.UNPAID, debut, fin)
+                : factureRepository
+                        .findByWalletCodeAndServiceNameAndStatutAndDateEmissionGreaterThanEqualAndDateEmissionLessThanOrderByDateEmissionAsc(
+                                walletCode, parseUnite(unite), StatutFacture.UNPAID, debut, fin);
+        return factures.stream().map(FactureDto::from).toList();
     }
 
     private ServiceName parseUnite(String unite) {
