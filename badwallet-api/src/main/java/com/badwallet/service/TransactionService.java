@@ -57,7 +57,7 @@ public class TransactionService {
         if (!walletRepository.existsByPhoneNumber(phoneNumber)) {
             throw new WalletNotFoundException("Portefeuille introuvable pour le telephone : " + phoneNumber);
         }
-        return transactionRepository.findByWalletPhoneNumberOrderByCreatedAtDesc(phoneNumber).stream()
+        return transactionRepository.findByWalletPhoneNumberOrderByCreatedAtDescIdDesc(phoneNumber).stream()
                 .map(TransactionResponse::from)
                 .toList();
     }
